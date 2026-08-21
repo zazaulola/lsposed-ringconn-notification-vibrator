@@ -16,3 +16,5 @@ app/build/
 /keystore/
 *.jks
 *.keystore
+# …except the intentional, non-secret release key (see app/build.gradle.kts).
+!app/release.keystore

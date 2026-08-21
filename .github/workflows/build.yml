@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build debug + release APKs
+        run: ./gradlew assembleDebug assembleRelease --no-daemon --stacktrace
+
+      - name: Sanity-check the module APK
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -f "$APK"
+          # The Xposed entry class must be declared, or LSPosed silently won't load the module.
+          unzip -p "$APK" assets/xposed_init | grep -qx 'io.github.ringvibe.hook.ModuleEntry'
+          # The Xposed API must stay compileOnly — bundling it breaks the module at runtime.
+          if unzip -l "$APK" | grep -qi 'de/robv/android/xposed'; then
+            echo "::error::Xposed API got bundled into the APK; it must remain compileOnly."
+            exit 1
+          fi
+          echo "APK sanity checks passed."
+
+      - name: Upload APKs as build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ringvibe-apks
+          path: app/build/outputs/apk/*/*.apk
+          if-no-files-found: error
+
+      - name: Attach APK to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app/build/outputs/apk/release/app-release.apk
+          generate_release_notes: true

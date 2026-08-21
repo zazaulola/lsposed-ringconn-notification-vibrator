@@ -15,9 +15,23 @@ android {
         versionName = "0.1.0"
     }
 
+    signingConfigs {
+        // A committed convenience key, so every release APK carries the same signature and can be
+        // updated in place instead of forcing an uninstall. This is deliberately NOT a secret: it
+        // signs a sideloaded open-source module, where the signature is an identity, not a trust
+        // boundary. Anyone forking this should generate their own key.
+        create("release") {
+            storeFile = file("release.keystore")
+            storePassword = "ringvibe"
+            keyAlias = "ringvibe"
+            keyPassword = "ringvibe"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

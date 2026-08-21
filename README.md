@@ -1,5 +1,8 @@
 # RingVibe
 
+[![Build](https://github.com/zazaulola/lsposed-ringconn-notification-vibrator/actions/workflows/build.yml/badge.svg)](https://github.com/zazaulola/lsposed-ringconn-notification-vibrator/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 An **LSPosed / Xposed module** that buzzes a **RingConn Gen 3** smart ring on **phone notifications**
 and **incoming calls** — something the official app deliberately does not do.
 
@@ -66,14 +69,18 @@ seam the module uses to both *find* the live connection and *inject* onto it.
 - The official **RingConn** app installed (`com.gdjztech.ringconn`) and connected to a **Gen 3** ring.
 - Android 9+ (built against SDK 35; verified to load on newer via name-based hooks).
 
-## Build
+## Install
+
+Grab `app-release.apk` from the [latest release](../../releases/latest) (every tagged build is
+attached automatically), or build it yourself:
 
 ```bash
 JAVA_HOME=/path/to/jdk-21 ./gradlew :app:assembleDebug
 # → app/build/outputs/apk/debug/app-debug.apk
 ```
 
-(JDK 17 or 21 works; the repo pins Gradle 8.11.1 + AGP 8.7.3.)
+(JDK 17 or 21 works; the repo pins Gradle 8.11.1 + AGP 8.7.3. Release builds are signed with a
+committed, deliberately non-secret key so updates install over each other.)
 
 ## Install & activate
 
@@ -87,8 +94,8 @@ Then:
 2. Set its **scope**: ✔ *System Framework* (`android`), ✔ *RingConn* (`com.gdjztech.ringconn`),
    ✔ *RingVibe* itself (only so the settings screen can show "active").
 3. **Reboot.**
-4. Open **RingVibe**, make sure the RingConn app is running and connected, and tap **Send test buzz
-   now**. With no captured command yet, the ring's LED should blink.
+4. Open **RingVibe**, make sure the RingConn app is running and connected to the ring, and tap
+   **Send test buzz now** — the ring should buzz.
 
 ## Configure
 
@@ -104,9 +111,78 @@ Everything is in the RingVibe settings screen:
   the *LED* blink.
 - **Test & debug** — send a test buzz; verbose logging (logcat tag `RingVibe`, also in the LSPosed log).
 
+## Troubleshooting
+
+Verbose logging is your friend: enable **Test & debug → Verbose logging**, then
+
+```bash
+adb logcat -s RingVibe
+```
+
+Every line below is a real failure mode seen while building this.
+
+### Nothing happens at all — no logs from the RingConn process
+
+Check whether the RingConn app is on the **Magisk DenyList**:
+
+```bash
+su -c 'magisk --denylist ls | grep gdjztech'
+```
+
+If it's listed, Zygisk gets unloaded from that process and LSPosed **cannot inject** — remove it
+(Magisk → Settings → Configure DenyList → untick RingConn), then force-stop the app. The LSPosed log
+gives it away: `zygisk64: [com.gdjztech.ringconn] is on the denylist`. If you need root hidden from
+the app, install **Shamiko** and keep it on the hide list instead — that hides root while still
+injecting.
+
+### "trigger received but no live ring GATT yet"
+
+The module reached the RingConn process but has no Bluetooth connection to write to.
+
+- Make sure the ring is **actually connected** (open the app; you should see live data). Verify:
+  ```bash
+  adb shell dumpsys bluetooth_manager | grep -i 'RingConn Gen3'
+  ```
+  Look for `ACL … LE:Y` — `LE:N` means no active link, only a bond.
+- Enable **Persistent Mode** in RingConn (Settings → Connectivity) and set its battery usage to
+  **Unrestricted**, or the link drops as soon as the app is backgrounded.
+- Note this message is *normal* from the `:xg_vip_service` (push) process — it has no Bluetooth. Only
+  the main `com.gdjztech.ringconn` process matters.
+
+### Notifications don't buzz, but the test button works
+
+The detection half lives in **system_server**, whose module code only reloads on **reboot** — not on
+app reinstall. After updating the module, reboot before concluding notifications are broken. Confirm
+the hooks landed:
+
+```bash
+adb logcat -s RingVibe | grep -i 'detection hooks installed'
+```
+
+If you instead see `… not found — notification buzzes DISABLED on this ROM`, the framework method
+names differ on your Android build; open an issue with your version.
+
+### Settings changes have no effect
+
+Settings are pushed to the system_server hook by broadcast. Reopening the RingVibe settings screen
+re-pushes them, so open the app once after changing anything if a change doesn't seem to apply. On
+some LSPosed forks the prefs file lives in a managed directory
+(`/data/misc/<uuid>/prefs/io.github.ringvibe/`) rather than `/data/data/io.github.ringvibe/shared_prefs/` —
+that's expected, not a bug.
+
+### Buzzes are occasionally skipped, or the LED stays on
+
+The module shares the GATT queue with the app, so a write can come back "busy"; it retries with
+backoff, but under heavy app traffic one can still be dropped (`write … failed after N tries`). Rare
+in practice — buzzes are tiny and infrequent.
+
+### Module shows "Inactive" in its own settings screen
+
+Add **RingVibe itself** to the module's LSPosed scope and reboot. This only affects the status
+display, not whether buzzing works.
+
 ## Known limitations & caveats
 
-- **The vibrate opcode is yours to capture** (above). Everything else is pre-wired.
 - **Depends on the RingConn app running and connected.** The module injects on *its* live link; if
   the app is force-stopped or the ring is disconnected, there's nothing to write to. Enable the
   RingConn app's *Persistent Mode* and set its battery usage to *Unrestricted*.
