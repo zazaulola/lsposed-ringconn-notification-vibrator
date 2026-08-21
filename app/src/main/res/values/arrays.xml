@@ -1,0 +1,34 @@
+<resources>
+    <string-array name="pattern_entries">
+        <item>Single buzz</item>
+        <item>Single buzz (medium)</item>
+        <item>Single buzz (long)</item>
+        <item>Double buzz</item>
+        <item>Triple buzz</item>
+    </string-array>
+    <string-array name="pattern_values">
+        <item>short</item>
+        <item>medium</item>
+        <item>long</item>
+        <item>double</item>
+        <item>triple</item>
+    </string-array>
+
+    <!-- What the module actually sends to the ring on each pulse. -->
+    <string-array name="command_entries">
+        <item>Vibrate — captured buzz command (falls back to LED until you set it)</item>
+        <item>Find-My-Ring LED blink — device-verified, works out of the box</item>
+    </string-array>
+    <string-array name="command_values">
+        <item>vibrate</item>
+        <item>led</item>
+    </string-array>
+
+    <!-- Default LSPosed injection scope for this module. -->
+    <string-array name="module_scope">
+        <item>android</item>
+        <item>system</item>
+        <item>com.gdjztech.ringconn</item>
+        <item>io.github.ringvibe</item>
+    </string-array>
+</resources>

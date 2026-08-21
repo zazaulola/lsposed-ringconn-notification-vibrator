@@ -1,0 +1,59 @@
+<resources>
+    <string name="app_name">RingVibe</string>
+    <string name="module_description">Buzz your RingConn Gen 3 on phone notifications and incoming calls by driving the ring\'s BLE vibrate command through the RingConn app.</string>
+    <string name="xposed_description">Buzz your RingConn Gen 3 on notifications and incoming calls by injecting a vibrate command onto the RingConn app\'s live Bluetooth connection.</string>
+
+    <!-- Status -->
+    <string name="cat_status">Status</string>
+    <string name="status_title">Module status</string>
+    <string name="status_active">Active — hooks are loaded</string>
+    <string name="status_inactive">Inactive — enable the module in LSPosed, add the scope, then reboot</string>
+
+    <!-- Triggers -->
+    <string name="cat_triggers">Triggers</string>
+    <string name="trigger_calls_title">Vibrate on incoming calls</string>
+    <string name="trigger_calls_summary">Buzz the ring while the phone is ringing</string>
+    <string name="trigger_notifications_title">Vibrate on notifications</string>
+    <string name="trigger_notifications_summary">Buzz the ring when an app posts a notification</string>
+
+    <!-- Vibration patterns -->
+    <string name="cat_vibration">Vibration</string>
+    <string name="pattern_calls_title">Call pattern</string>
+    <string name="pattern_notifications_title">Notification pattern</string>
+    <string name="calls_repeat_title">Call buzz repeats</string>
+    <string name="calls_repeat_summary">How many times to re-buzz while ringing</string>
+
+    <!-- Notification filtering -->
+    <string name="cat_filter">Notification filtering</string>
+    <string name="filter_ongoing_title">Ignore ongoing notifications</string>
+    <string name="filter_ongoing_summary">Skip foreground-service / persistent notifications (music, downloads, VPN…)</string>
+    <string name="filter_low_title">Ignore low-importance notifications</string>
+    <string name="filter_low_summary">Skip MIN/LOW importance notifications</string>
+    <string name="filter_group_summary_title">Ignore group summaries</string>
+    <string name="filter_group_summary_summary">Skip the umbrella summary notification of a bundle</string>
+    <string name="only_screen_off_title">Only when screen is off</string>
+    <string name="only_screen_off_summary">Buzz only if the display is off (you\'re not already looking)</string>
+    <string name="allowlist_title">App allow-list</string>
+    <string name="allowlist_summary">Comma/newline separated package names. Empty = all apps.</string>
+    <string name="blocklist_title">App block-list</string>
+    <string name="blocklist_summary">Comma/newline separated package names to always skip.</string>
+    <string name="cooldown_title">Cooldown (ms)</string>
+    <string name="cooldown_summary">Minimum gap between two notification buzzes</string>
+
+    <!-- RingConn integration / discovered protocol -->
+    <string name="cat_integration">RingConn integration</string>
+    <string name="ringconn_package_title">RingConn app package</string>
+    <string name="ringconn_package_summary">The package name the module hooks. Add it to this module\'s LSPosed scope too.</string>
+    <string name="command_source_title">What to send to the ring</string>
+    <string name="vibrate_cmd_title">Vibrate command (hex)</string>
+    <string name="vibrate_cmd_summary">Bytes written to the ring to buzz it. Pre-filled with the captured Gen 3 command (0B 03 01 64 00). Empty = fall back to the LED blink.</string>
+    <string name="write_service_title">Write service UUID</string>
+    <string name="write_char_title">Write characteristic UUID</string>
+
+    <!-- Test / debug -->
+    <string name="cat_test">Test &amp; debug</string>
+    <string name="test_vibrate_title">Send test buzz now</string>
+    <string name="test_vibrate_summary">Broadcast a trigger to the RingConn process immediately</string>
+    <string name="debug_logging_title">Verbose logging</string>
+    <string name="debug_logging_summary">Log hook activity to logcat (tag: RingVibe)</string>
+</resources>
